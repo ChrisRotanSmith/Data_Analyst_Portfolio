@@ -1,4 +1,4 @@
-# Bella_Beat_Fitness_Project
+# Bella_Beat_Fitness_Company
 Data Analyst Project
 Scenario:
 
