@@ -1,0 +1,10 @@
+Step 1: Uploading Data into BigQuery
+To begin my project, I created a Google Cloud project and set up a structured environment for data analysis in BigQuery. This involved the following steps:
+
+Creating a Dataset: I initialized a dataset named bella_beat_fitbit to store and organize my project tables.
+
+Uploading Raw Data: I imported the raw Fitbit dataset CSV files into BigQuery. Each file was uploaded as a separate table, such as DailyActivity, DailySteps, and SleepDay.
+
+Ensuring Data Integrity: During the upload process, I verified the schema by defining column data types (e.g., INTEGER for numeric values and TIMESTAMP for date fields) to ensure compatibility with BigQuery's SQL processing.
+
+Preparing for Cleaning and Analysis: These tables served as the foundation for further data cleaning and transformation using BigQuery's SQL capabilities.
