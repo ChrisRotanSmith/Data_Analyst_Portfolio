@@ -1,204 +1,67 @@
 Step 2: Cleaning the Data in BigQuery
-Using BigQuery’s SQL capabilities, I performed data cleaning to ensure the dataset was accurate, consistent, and ready for analysis. The key steps included:
+Using BigQuery's SQL capabilities, I cleaned the Fitbit dataset to ensure it was accurate, consistent, and ready for analysis. Below are the key steps:
 
-Data Validation:  Validated the the column types in the tables I will be using.
+Validating Column Types:
+Ensured all columns had appropriate data types for analysis and transformations:
 
-SELECT *, DATA_TYPE 
-FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS` 
+
+SELECT column_name, DATA_TYPE 
+FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS`
 WHERE table_name = 'DailyActivity';
-SELECT *, DATA_TYPE 
-FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS`
-WHERE table_name = 'DailyActivityCaloriesBurnedPerHour';
-SELECT *, DATA_TYPE 
-FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS`
-WHERE table_name = 'DailyCalories';
-SELECT *, DATA_TYPE 
-FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS`
-WHERE table_name = 'DailyIntensity';
-SELECT *, DATA_TYPE 
-FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS`
-WHERE table_name = 'DailySteps';
-SELECT *, DATA_TYPE 
-FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS`
-WHERE table_name = 'SleepDays';
+Handling Missing and Null Values
+Identified and addressed missing values using dynamic SQL to efficiently check for NULLs across multiple columns:
 
-Handling Missing and Null Values: I identified columns with missing or null values and addressed them by applying strategies such as filtering out incomplete records or imputing defaults where appropriate.
-I created a dynamic query to find the number of null values in each column of any table I input in the dataset.
 
-```SELECT COUNT(*) AS total_rows,
-      SUM(CASE WHEN `column` IS NULL THEN 1 ELSE 0 END) AS missing_column,
-     SUM(CASE WHEN `column` IS NULL THEN 1 ELSE 0 END) AS missing_column,
-     SUM(CASE WHEN `column` IS NULL THEN 1 ELSE 0 END) AS missing_column,
-     SUM(CASE WHEN `column` IS NULL THEN 1 ELSE 0 END) AS missing_column
-FROM `your_project_id.your_dataset_id.your_table_id`;
---below is the dynamic query for multiple columns of this query
+-- Dynamic query to count NULLs in the 'SleepDays' table
 DECLARE query_string STRING;
--- Step 1: Generate the dynamic SQL for checking NULL values
 SET query_string = (
   SELECT STRING_AGG(
     FORMAT("SUM(CASE WHEN %s IS NULL THEN 1 ELSE 0 END) AS missing_%s", column_name, column_name), 
     ', '
   )
   FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS`
-  WHERE table_name = 'SleepDay'
+  WHERE table_name = 'SleepDays'
 );
--- Step 2: Combine the generated query string with the base query
 SET query_string = FORMAT("""
   SELECT COUNT(*) AS total_rows, %s
-  FROM `bellabeatproject-447101.bella_beat_fitbit.SleepDay`
+  FROM `bellabeatproject-447101.bella_beat_fitbit.SleepDays`
 """, query_string);
--- Step 3: Execute the dynamic query
-EXECUTE IMMEDIATE query_string;```
+EXECUTE IMMEDIATE query_string;
 
-Removing Duplicates: I removed duplicate rows to ensure each record in the dataset was unique, especially in tables like DailySteps and SleepDay.
-
-```SELECT `first_name`, `last_name`, `email`, COUNT(*) AS duplicate_count
-      FROM `your_project_id.your_dataset_id.your_table_id`
-      GROUP BY `first_name`, `last_name`, `email`
-      HAVING COUNT(*) > 1;  
---This is the output of the dynamic query below for finding duplicates in columns in a table
-DECLARE query_string STRING;
--- Step 1: Generate the dynamic SQL for identifying duplicates
-SET query_string = (
-  SELECT STRING_AGG(
-    FORMAT("`%s`", column_name), 
-    ', '
-  )
-  FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS`
-  WHERE table_name = 'SleepDay2'
-);
--- Step 2: Combine the generated query string with the GROUP BY and HAVING clause
-SET query_string = FORMAT("""
-  SELECT %s, COUNT(*) AS duplicate_count
-  FROM `bellabeatproject-447101.bella_beat_fitbit.SleepDay2`
-  GROUP BY %s
-  HAVING COUNT(*) > 1
-""", query_string, query_string);
--- Step 3: Execute the dynamic query
-EXECUTE IMMEDIATE query_string;``
---SleepDay is the only table with duplicates so I'll get rid of those.
-
-Normalized column names for easier analysis:
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `TotalSteps` TO `total_steps`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `TotalDistance` TO `total_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `TrackerDistance` TO `tracker_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `LoggedActivitiesDistance` TO `logged_activities_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `VeryActiveDistance` TO `very_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `ModeratelyActiveDistance` TO `moderately_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `LightActiveDistance` TO `light_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `SedentaryActiveDistance` TO `sedentary_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `VeryActiveDistance` TO `very_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `FairlyActiveDistance` TO `fairly_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `LightlyActiveDistance` TO `lightly_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `SedentaryMinutes` TO `sedentary_minutes`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `Calories` TO `calories`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `VeryActiveMinutes` TO `very_active_minutes`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `FairlyActiveMinutes` TO `fairly_active_minutes`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
---RENAME COLUMN `LightlyActiveMinutes` TO `lightly_active_minutes`;
-
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivityCaloriesBurnedPerHour`
---RENAME COLUMN `Activity` TO `activity`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivityCaloriesBurnedPerHour`
---RENAME COLUMN `130_Lbs` TO `130_lbs`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivityCaloriesBurnedPerHour`
---RENAME COLUMN `155_Lbs` TO `155_lbs`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivityCaloriesBurnedPerHour`
---RENAME COLUMN `190_Lbs` TO `190_lbs`;
-
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyCalories`
---RENAME COLUMN `Id` TO `id`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyCalories`
---RENAME COLUMN `ActivityDay` TO `activity_day`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyCalories`
---RENAME COLUMN `Calories` TO `calories`;
-
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyIntesity`
---RENAME COLUMN `Id` TO `id`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyIntensity`
---RENAME COLUMN `SedentaryMinutes` TO `sedentary_minutes`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyIntensity`
---RENAME COLUMN `LightlyActiveMinutes` TO `lightly_active_minutes`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyIntensity`
---RENAME COLUMN `FairlyActiveMinutes` TO `fairly_active_minutes`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyIntensity`
---RENAME COLUMN `SedentaryActiveDistance` TO `sedentary_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyIntensity`
---RENAME COLUMN `LightActiveDistance` TO `light_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyIntensity`
---RENAME COLUMN `ModeratelyActiveDistance` TO `moderately_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyIntensity`
---RENAME COLUMN `VeryActiveDistance` TO `very_active_distance`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyIntensity`
---RENAME COLUMN `ActivityDay` TO `activity_day`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyIntensity`
---RENAME COLUMN `VeryActiveMinutes` TO `very_active_minutes`;
-
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailySteps`
---RENAME COLUMN `Id` TO `id`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailySteps`
---RENAME COLUMN `ActivityDay` TO `activity_day`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailySteps`
---RENAME COLUMN `StepTotal` TO `total_steps`;
-
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.SleepDays`
---RENAME COLUMN `Id` TO `id`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.SleepDays`
---RENAME COLUMN `SleepDay` TO `sleep_day`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.SleepDays`
---RENAME COLUMN `TotalSleepRecords` TO `total_sleep_records`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.SleepDays`
---RENAME COLUMN `TotalMinutesAsleep` TO `total_minutes_asleep`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.SleepDays`
---RENAME COLUMN `TotalTimeInBed` TO `total_time_in_bed`;
---ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.SleepDays`
---RENAME COLUMN `weekday_name` TO `weekday`;
+Removing Duplicates:
+Removed duplicate records from the SleepDays table to ensure data integrity:
 
 
-Standardizing Data Formats: I standardized date and time formats across all tables to ensure consistency for joins and time-based analyses.
-I did this in Excel because it was easier and faster to do.  I did this by changing the the format of the date in the table from 4/12/16 0:00 to YYYY/DD/MM format.
-The table, "SleepDays", has a column, "total_minuts_asleep", and to make that easier for analysis(visually), I created a new column from that column, "total_hours_asleep" with this code.
+SELECT *, COUNT(*) AS duplicate_count
+FROM `bellabeatproject-447101.bella_beat_fitbit.SleepDays`
+GROUP BY column_1, column_2  -- Specify relevant columns
+HAVING COUNT(*) > 1;
+Normalizing Column Names
+Standardized column names across all tables for easier analysis:
+
+
+ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.DailyActivity`
+RENAME COLUMN `TotalSteps` TO `total_steps`;
+
+Standardizing Data Formats:
+Standardized date formats in Excel and added derived columns for deeper analysis, such as total_hours_asleep and weekday:
+
 
 ALTER TABLE `bellabeatproject-447101.bella_beat_fitbit.SleepDays`
 ADD COLUMN total_hours_asleep FLOAT64;
 UPDATE `bellabeatproject-447101.bella_beat_fitbit.SleepDays`
-SET total_hours_asleep = ROUND(total_minutes_asleep / 60, 1)
-WHERE TRUE;
-
-I also add a weekday column to the 'SleepDays" table from the "ActivityDate" column to analyze the amount of sleep during the days of the week.
-
-SELECT column_name, DATA_TYPE 
-FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS`
-WHERE table_name = 'SleepDays';
-
-CREATE OR REPLACE TABLE `bellabeatproject-447101.bella_beat_fitbit.SleepDays` AS
-SELECT Id, SleepDay, TotalSleepRecords, TotalMinutesAsleep, TotalTimeInBed,
-       EXTRACT(DAYOFWEEK FROM SleepDay) AS weekday_number,  -- Weekday as number
-       FORMAT_TIMESTAMP('%A', SleepDay) AS weekday_name  -- Weekday as name
-FROM `bellabeatproject-447101.bella_beat_fitbit.SleepDays`;
-
-Lastly, I joined the tables into a relevant table to use in tableau.
-
-CREATE OR REPLACE TABLE `bellabeatproject-447101.bella_beat_fitbit.bellabeatfitbit_cleaned` as
-SELECT  da.*, dc.calories as burned_calories, ds.total_steps as total_daily_steps 
-FROM `bellabeatproject-447101.bella_beat_fitbit.DailyActivity` as da
-LEFT JOIN `bellabeatproject-447101.bella_beat_fitbit.DailyCalories` as dc ON da.Id = dc.Id AND da.activity_date = dc.activity_day
-LEFT JOIN `bellabeatproject-447101.bella_beat_fitbit.DailySteps` as ds ON da.Id = ds.Id AND da.activity_date = ds.activity_day;
+SET total_hours_asleep = ROUND(total_minutes_asleep / 60, 1);
+Creating the Final Joined Table
+Integrated all cleaned data into a single table, bellabeatfitbit_cleaned, for analysis in Tableau:
 
 
+CREATE OR REPLACE TABLE `bellabeatproject-447101.bella_beat_fitbit.bellabeatfitbit_cleaned` AS
+SELECT da.*, dc.calories AS burned_calories, ds.total_steps AS total_daily_steps 
+FROM `bellabeatproject-447101.bella_beat_fitbit.DailyActivity` AS da
+LEFT JOIN `bellabeatproject-447101.bella_beat_fitbit.DailyCalories` AS dc 
+ON da.Id = dc.Id AND da.activity_date = dc.activity_day
+LEFT JOIN `bellabeatproject-447101.bella_beat_fitbit.DailySteps` AS ds 
+ON da.Id = ds.Id AND da.activity_date = ds.activity_day;
+Outcome:
+The cleaned and joined dataset provided a reliable foundation for visualizations in Tableau, allowing for meaningful insights into activity, sleep, and calorie metrics.
 
