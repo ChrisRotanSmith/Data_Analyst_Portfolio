@@ -1,0 +1,39 @@
+Step 2: Cleaning the Data in BigQuery
+Using BigQuery’s SQL capabilities, I performed data cleaning to ensure the dataset was accurate, consistent, and ready for analysis. The key steps included:
+
+Handling Missing and Null Values: I identified columns with missing or null values and addressed them by applying strategies such as filtering out incomplete records or imputing defaults where appropriate.
+
+`SELECT COUNT(*) AS total_rows,
+      SUM(CASE WHEN `column` IS NULL THEN 1 ELSE 0 END) AS missing_column,
+     SUM(CASE WHEN `column` IS NULL THEN 1 ELSE 0 END) AS missing_column,
+     SUM(CASE WHEN `column` IS NULL THEN 1 ELSE 0 END) AS missing_column,
+     SUM(CASE WHEN `column` IS NULL THEN 1 ELSE 0 END) AS missing_column
+FROM `your_project_id.your_dataset_id.your_table_id`;
+
+--below is the dynamic query for multiple columns of this query
+
+DECLARE query_string STRING;
+
+-- Step 1: Generate the dynamic SQL for checking NULL values
+SET query_string = (
+  SELECT STRING_AGG(
+    FORMAT("SUM(CASE WHEN %s IS NULL THEN 1 ELSE 0 END) AS missing_%s", column_name, column_name), 
+    ', '
+  )
+  FROM `bellabeatproject-447101.bella_beat_fitbit.INFORMATION_SCHEMA.COLUMNS`
+  WHERE table_name = 'SleepDay'
+);
+
+-- Step 2: Combine the generated query string with the base query
+SET query_string = FORMAT("""
+  SELECT COUNT(*) AS total_rows, %s
+  FROM `bellabeatproject-447101.bella_beat_fitbit.SleepDay`
+""", query_string);`
+
+-- Step 3: Execute the dynamic query
+EXECUTE IMMEDIATE query_string;
+
+Removing Duplicates: I removed duplicate rows to ensure each record in the dataset was unique, especially in tables like DailySteps and SleepDay.
+Standardizing Data Formats: I standardized date and time formats across all tables to ensure consistency for joins and time-based analyses.
+Validating Data Ranges: I filtered out any outliers or invalid entries, such as negative step counts or calorie values, to maintain data integrity.
+Optimizing the Dataset: I created temporary and permanent tables with cleaned data to streamline the analysis process in subsequent steps.
