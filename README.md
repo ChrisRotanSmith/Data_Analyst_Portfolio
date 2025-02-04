@@ -1,4 +1,4 @@
-Welcome to my Data Analytics Portfolio! 🚀 Here, I showcase projects demonstrating my skills in data analysis, visualization, and storytelling using tools like Python, SQL, Tableau, Power BI, and more.
+My name is Chris Rotan-Smith.  Welcome to my Data Analytics Portfolio! 🚀 Here, I showcase projects demonstrating my skills in data analysis, visualization, and storytelling using tools like Python, SQL, Tableau, Power BI, and more.
 
 📁 Projects Overview
 Each project includes data cleaning, analysis, and visualization to extract insights and tell a compelling data story.
