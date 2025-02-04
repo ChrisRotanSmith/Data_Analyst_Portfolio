@@ -1,4 +1,3 @@
-📊 Data Analytics Portfolio
 Welcome to my Data Analytics Portfolio! 🚀 Here, I showcase projects demonstrating my skills in data analysis, visualization, and storytelling using tools like Python, SQL, Tableau, Power BI, and more.
 
 📁 Projects Overview
